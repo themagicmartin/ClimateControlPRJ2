@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inhale Climate</title>
+    <style>
+
+    /* CSS Body */
+    body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    font-size: 16px;
+    color: #373737; /* Default text color */
+    background-color: #f8f8f8; /* Background color */
+    }
+
+    /* CSS Headers */
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: bold;
+        color: #007bff; /* Header text color */
+    }  
+
+p {
+    margin-bottom: 20px;
+}
+        
+        /* Styles for split screen layout */
+        .container {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Adjust as needed */
+            grid-template-rows: repeat(2, 1fr); /* Adjust as needed */
+            height: 100vh; /* Adjust to fill the viewport height */
+        }
+        .division {
+            border: 1px solid black;
+            box-sizing: border-box;
+        }
+        .scaled-image {
+        max-width: 95%;
+        height: auto;
+        } 
+    </style>
+</head>
+<body>
+    <!-- Header Section -->
+    <header>
+        <h1><center>Climate Control</center></h1>
+    </header>
+
+    <!--Split by four sections-->
+    <div class="container">
+        <div class="division">Division 1</div>
+        <div class="division" id="graphDivision">
+            <!-- Image holder for the graph -->
+        <center><img src="images/plot.png" alt="plot" class=scaled-image></center>
+            <div>
+                
+            </div>
+        </div>
+        <div class="division">Division 3</div>
+        <div class="division">Division 4</div>
+    </div>
+
+    <!-- Footer Section -->
+    <footer>
+        <p>&copy; 2024 Energistyring - PRJ2</p>
+    </footer>
+
+    <!-- Include your script here -->
+    <script src="scripts.js"></script>
+</body>
+</html>
