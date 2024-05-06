@@ -13,3 +13,11 @@ The Arduino scans (I2C) for new information (SCD30.ino), and when this is regist
 The Computer is running main.py that is constantly scanning for input and this is dissected to identify the values of the parameters passed from the   Arduino UART print.
 
 # Motor
+
+
+
+## Files
+app.py - Flask environment for hosting server locally. (Note: Has to be in parent folder with "templates" folder containing HTML-file)
+SCD30.ino - Arduino code for sensor SCD30 measurements, and transfer with UART through USB to computer.
+base.html - Website html structure.
+main.py - Data collection and visualisation on computer.
