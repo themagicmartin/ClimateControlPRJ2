@@ -16,8 +16,12 @@ The Computer is running main.py that is constantly scanning for input and this i
 
 
 
-## Files
-app.py - Flask environment for hosting server locally. (Note: Has to be in parent folder with "templates" folder containing HTML-file)
-SCD30.ino - Arduino code for sensor SCD30 measurements, and transfer with UART through USB to computer.
-base.html - Website html structure.
-main.py - Data collection and visualisation on computer.
+# Files
+## app.py
+Flask environment for hosting server locally. (Note: Has to be in parent folder with "templates" folder containing HTML-file)
+## SCD30.ino
+Arduino code for sensor SCD30 measurements, and transfer with UART through USB to computer.
+## base.html
+Website html structure.
+## main.py
+Data collection and visualisation on computer.
