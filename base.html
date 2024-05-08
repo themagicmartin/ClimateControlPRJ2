@@ -21,6 +21,26 @@
         color: #007bff; /* Header text color */
     }  
 
+    #currentThresholds {
+    position: absolute;
+    top: 10;
+    right: 10;
+    padding: 10px;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    }
+
+    #thresholdsDivision {
+    display: flex;
+    flex-direction: row-reverse; /* Reversed row direction to place the current thresholds on the far right */
+    align-items: flex-start; /* Align items to the top */
+    }
+
+    #thresholdsForm {
+    margin-right: auto; /* Add margin to push it away from the right side */
+    }
+
+
 p {
     margin-bottom: 20px;
 }
@@ -50,16 +70,59 @@ p {
 
     <!--Split by four sections-->
     <div class="container">
-        <div class="division">Division 1</div>
+        <!-- Division 1: Threshold settings -->
+        <!-- Division 1: Thresholds -->
+        <div class="division" id="thresholdsDivision">
+            <h2>Thresholds</h2>
+
+            <!-- Menu for editing thresholds -->
+            <form id="thresholdsForm" action="/save-threshold" method="post">
+                <b>Edit Thresholds:</b><br>
+                <label for="thresholdType">Threshold Type:</label>
+                <select id="thresholdType" name="thresholdType">
+                    <option value="temperature_min">Temperature (min)</option>
+                    <option value="humidity_max">Humidity (max)</option>
+                    <option value="humidity_min">Humidity (min)</option>
+                    <option value="co2_max">CO2 (max)</option>
+                </select><br>
+
+                <label for="thresholdValue">Threshold Value:</label>
+                <input type="number" id="thresholdValue" name="thresholdValue" required><br>
+
+                <button type="submit">Save</button>
+            </form>
+
+            <!-- Box displaying current thresholds -->
+            <div id="currentThresholds">
+                <b>Current Thresholds:</b><br>
+                Temperature min:  {{ thresholds['temperature_min'] }} &deg; C<br>
+                Humidity max: {{ thresholds['humidity_max'] }} %<br>
+                Humidity min: {{ thresholds['humidity_min'] }} %<br>
+                CO2 max: {{ thresholds['co2_max'] }} ppm<br>
+            </div>
+            
+        </div>
+
+        <!-- Division 2: Graph division -->
         <div class="division" id="graphDivision">
             <!-- Image holder for the graph -->
-        <center><img src="images/plot.png" alt="plot" class=scaled-image></center>
-            <div>
-                
-            </div>
+            <center>
+                <img id="graphImage" src="{{ image_path }}" alt="plot" class="scaled-image">
+            </center>
         </div>
-        <div class="division">Division 3</div>
-        <div class="division">Division 4</div>
+
+        <!-- Division 3: Notifications -->
+        <div class="division">
+        </div>
+
+        <!-- Division 4: Buttons division -->
+        <div class="division" id="buttonDivision">
+            <form action="/change-image" method="post"> <!-- Changed the action to /change-image -->
+                <button type="submit" name="action" value="daily">Daily</button>
+                <button type="submit" name="action" value="weekly">Weekly</button>
+                <button type="submit" name="action" value="monthly">Monthly</button>
+            </form>
+        </div>
     </div>
 
     <!-- Footer Section -->
@@ -67,7 +130,5 @@ p {
         <p>&copy; 2024 Energistyring - PRJ2</p>
     </footer>
 
-    <!-- Include script here -->
-   
 </body>
 </html>
