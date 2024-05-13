@@ -82,40 +82,40 @@ void loop() {
 void standby()
 {
  digitalWrite(stepPin, LOW);
- delayMicroseconds(650);
+ delayMicroseconds(600);
  digitalWrite(stepPin, LOW);
- delayMicroseconds(650);
+ delayMicroseconds(600);
  test = 2;
 }
-// The driver for the motor
 void run()
 {
  digitalWrite(stepPin, HIGH);
- delayMicroseconds(700);
+ delayMicroseconds(200);
  digitalWrite(stepPin, LOW);
- delayMicroseconds(700);
+ delayMicroseconds(200);
 }
-//Open window
 void open()
+{
+  //Towards metal end
+  int i = 0;
+  int u = 0;
+  digitalWrite(directionPin, HIGH);
+  for(uint16_t i; i<64000; i++)
+  {
+    run();
+  }
+  standby();
+}
+
+void close()
 {
   //Towards stepper motor
   int i = 0;
-  digitalWrite(directionPin, HIGH);
-  while(i<35000){
-    run();
-    i++;
-  }
-  standby();
-}
-//Close window
-void close()
-{
-  //Towards metal end.
-  int i = 0;
   digitalWrite(directionPin, LOW);
-  while(i<35000){
-    run();
-    i++;
+    for(uint16_t i; i<64000; i++){
+      run();
   }
   standby();
 }
+
+
