@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inhale Climate</title>
+    <title>Climate Control</title>
     <style>
 
     /* CSS Body */
@@ -22,12 +22,13 @@
     }  
 
     #currentThresholds {
-    position: absolute;
+    position: relative;
     top: 10;
     right: 10;
     padding: 10px;
     background-color: #f0f0f0;
     border: 1px solid #ccc;
+    margin-right: auto;
     }
 
     #thresholdsDivision {
@@ -36,10 +37,10 @@
     align-items: flex-start; /* Align items to the top */
     }
 
-    #thresholdsForm {
-    margin-right: auto; /* Add margin to push it away from the right side */
-    }
-
+    #threshold_form {
+    margin-left: 0; /* Add margin to push it away from the right side */
+    position: relative;
+}
 
 p {
     margin-bottom: 20px;
@@ -60,6 +61,14 @@ p {
         max-width: 95%;
         height: auto;
         } 
+        .form-inline {
+            display: inline-block; /* Display the forms as inline-block elements */
+        }
+
+        .form-inline button {
+            margin-left: 0; /* Add some spacing between buttons */
+        }
+
     </style>
 </head>
 <body>
@@ -71,37 +80,41 @@ p {
     <!--Split by four sections-->
     <div class="container">
         <!-- Division 1: Threshold settings -->
-        <!-- Division 1: Thresholds -->
+        <!-- Menu for editing thresholds -->
         <div class="division" id="thresholdsDivision">
-            <h2>Thresholds</h2>
-
             <!-- Menu for editing thresholds -->
-            <form id="thresholdsForm" action="/save-threshold" method="post">
-                <b>Edit Thresholds:</b><br>
-                <label for="thresholdType">Threshold Type:</label>
-                <select id="thresholdType" name="thresholdType">
-                    <option value="temperature_min">Temperature (min)</option>
-                    <option value="humidity_max">Humidity (max)</option>
-                    <option value="humidity_min">Humidity (min)</option>
-                    <option value="co2_max">CO2 (max)</option>
-                </select><br>
+            <div>
+                <form action="{{ url_for('save_reset_threshold') }}" method="post" id="threshold_form" class="threshold_form">
+                    <b>Edit Thresholds:</b><br>
+                    <label for="thresholdType">Threshold Type:</label>
 
-                <label for="thresholdValue">Threshold Value:</label>
-                <input type="number" id="thresholdValue" name="thresholdValue" required><br>
+                    <select id="thresholdType" name="thresholdType">
+                        <option value="temperature_lower_threshold">Temperature (min)</option>
+                        <option value="humidity_upper_threshold">Humidity (max)</option>
+                        <option value="humidity_lower_threshold">Humidity (min)</option>
+                        <option value="CO2_upper_threshold">CO2 (max)</option>
+                    </select>
+                    
+                    <br>
+                    <label for="thresholdValue">Threshold Value:</label>
+                    <input type="number" id="thresholdValue" name="thresholdValue" value="0">
+                    <br>
 
-                <button type="submit">Save</button>
-            </form>
+                    <button type="submit" name="action" value="save" class="btn btn-primary">Save</button>
+                    <button type="submit" name="action" value="reset" class="btn btn-secondary">Reset</button>
+                </form>
+            </div>
 
             <!-- Box displaying current thresholds -->
-            <div id="currentThresholds">
+            <div id="currentThresholds" style="margin-right: auto;">
                 <b>Current Thresholds:</b><br>
-                Temperature min:  {{ thresholds['temperature_min'] }} &deg; C<br>
-                Humidity max: {{ thresholds['humidity_max'] }} %<br>
-                Humidity min: {{ thresholds['humidity_min'] }} %<br>
-                CO2 max: {{ thresholds['co2_max'] }} ppm<br>
+                Temperature min:  {{ temperature_lower_threshold }} &deg;C<br>
+                Humidity max: {{ humidity_upper_threshold }} %<br>
+                Humidity min: {{ humidity_lower_threshold }} %<br>
+                CO2 max: {{ CO2_upper_threshold }} ppm<br>
             </div>
-            
         </div>
+
 
         <!-- Division 2: Graph division -->
         <div class="division" id="graphDivision">
@@ -111,6 +124,25 @@ p {
             </center>
         </div>
 
+        <!-- JavaScript code to update the image -->
+        <script>
+            // Function to update the image
+            function updateImage() {
+                // Get the image element
+                var img = document.getElementById("graphImage");
+
+                // Generate a new timestamp to ensure the image is not cached by the browser
+                var timestamp = new Date().getTime();
+
+                // Set the source of the image with a new timestamp to force a reload
+                img.src = "{{ image_path }}?timestamp=" + timestamp;
+                console.log("Event logged: Image updated");
+            }
+
+            // Call the updateImage function every 5 seconds
+            setInterval(updateImage, 5000);
+        </script>        
+
         <!-- Division 3: Notifications -->
         <div class="division">
         </div>
@@ -118,10 +150,11 @@ p {
         <!-- Division 4: Buttons division -->
         <div class="division" id="buttonDivision">
             <form action="/change-image" method="post"> <!-- Changed the action to /change-image -->
-                <button type="submit" name="action" value="daily">Daily</button>
-                <button type="submit" name="action" value="weekly">Weekly</button>
-                <button type="submit" name="action" value="monthly">Monthly</button>
+                <button type="submit" name="action" value="minute">Minute</button>
+                <button type="submit" name="action" value="hourly">Hour</button>
+                <button type="submit" name="action" value="daily">Day</button>
             </form>
+            
         </div>
     </div>
 
