@@ -5,7 +5,6 @@ Adafruit_SCD30  scd30;
 
 const int directionPin = 2;
 const int stepPin = 3; 
-int test = 0;
 
 
 void setup(void) {
