@@ -1,9 +1,11 @@
-import serial
-import time
-import matplotlib.pyplot as plt
+import threading                                            # For multithread operation
+import serial                                               # Serial communication to Arduino
+import time                                                 # Sleep timers
+from datetime import datetime, timedelta                    # Timestamps for plotting
+import matplotlib.pyplot as plt                             # For data visualisation
 
 # Initialize serial communication
-serialInst = serial.Serial('/dev/tty.usbmodem1101', 115200)  # On mac terminal: ls /dev/tty.*
+serialInst = serial.Serial('/dev/tty.usbmodem1101', 115200)  # Port and baudrate. On mac terminal: ls /dev/tty.*
 time.sleep(2)  # Allow time for Arduino to initialize
 
 # Initialize lists for logging data
@@ -19,10 +21,16 @@ CO2 = 0
 start_time = time.time()
 
 # Initialize threshold values
-temperature_lower_threshold = float(10)
-humidity_lower_threshold = float(20)
-humidity_upper_threshold = float(80)
-CO2_upper_threshold = float(1500)
+temperature_lower_threshold = 10.0
+humidity_lower_threshold = 30.0
+humidity_upper_threshold = 70.0
+CO2_upper_threshold = 2000.0
+
+# Initialize thresholds with initial values
+initial_temperature_lower_threshold = temperature_lower_threshold
+initial_humidity_lower_threshold = humidity_lower_threshold
+initial_humidity_upper_threshold = humidity_upper_threshold
+initial_CO2_upper_threshold = CO2_upper_threshold
 
 # Initialize threshold triggers
 CO2_beyond = False
@@ -30,73 +38,117 @@ hum_below = False
 hum_beyond = False
 temp_below = False
 
+# Initialize window boolean
+WindowIsOpen = False
+
 # Initialize threshold colors
 color_hum_low = 'gray'
 color_hum_high = 'gray'
 color_CO2 = 'gray'
 color_temp = 'gray' 
 
-# Initialize plot
-plt.figure(figsize=(15, 10))
-
 # Methods
-def update_plots():
-    global temperature, humidity, CO2  # Declare variables as global to modify them
-    # Update the plots
-    plt.clf()  # Clear previous plot
-
+def save_plot(time_log, temp_log, hum_log, CO2_log, output_path): # Converts plots to PNG. Used in update_plots
+    global temperature_lower_threshold, color_temp, humidity_lower_threshold, humidity_upper_threshold, color_hum_low, color_hum_high, CO2_upper_threshold, color_CO2
+    
+    # Create a new plot
+    plt.figure(figsize=(15, 13))
+    
     # Temperature plot
     plt.subplot(3, 1, 1)
     plt.plot(time_log, temp_log, color='red')
     plt.axhline(y=temperature_lower_threshold, color=color_temp, linestyle='--')
-    plt.xlabel('Time (minutes)')
+    plt.xlabel('Time')
     plt.ylabel('Temperature (°C)')
     plt.grid(True)
-    plt.text(max(time_log), temperature, f'{temperature:.2f}', va='center', ha='left', color='red')
-
+    plt.title('Temperature Plot')
+    
     # Humidity plot
     plt.subplot(3, 1, 2)
     plt.plot(time_log, hum_log, color='blue')
     plt.axhline(y=humidity_lower_threshold, color=color_hum_low, linestyle='--')
     plt.axhline(y=humidity_upper_threshold, color=color_hum_high, linestyle='--')
-    plt.xlabel('Time (minutes)')
+    plt.xlabel('Time')
     plt.ylabel('Humidity (%)')
     plt.ylim(0, 100)
     plt.grid(True)
-    plt.text(max(time_log), humidity, f'{humidity_lower_threshold:.2f}', va='center', ha='left', color='blue')
-
+    plt.title('Humidity Plot')
+    
     # CO2 plot
     plt.subplot(3, 1, 3)
     plt.plot(time_log, CO2_log, color='green')
     plt.axhline(y=CO2_upper_threshold, color=color_CO2, linestyle='--')
-    plt.xlabel('Time (minutes)')
+    plt.xlabel('Time')
     plt.ylabel('CO2 (ppm)')
     plt.grid(True)
-    plt.text(max(time_log), CO2, f'{CO2:.2f}', va='center', ha='left', color='green')
-
+    plt.title('CO2 Plot')
+    
+    plt.subplots_adjust(hspace=0.5)  # Adjust the vertical spacing between subplots
+    
     plt.tight_layout()
-    plt.draw()
-    plt.pause(0.1)  # Pause to allow the plot to update
+    
+    # Save the plot as a PNG file
+    plt.savefig(output_path, bbox_inches='tight', pad_inches=0.1)
+    
+    # Close the current plot to release memory
+    plt.close()
 
-def log_data(data):
-    global temperature, humidity, CO2  # Declare variables as global to modify them
-    elapsed_time = (time.time() - start_time) / 60  # Minutes passed
-    lines = data.split('\n')                        # Split lines of data
-    for line in lines:                              # Scan for information
-        if "Temperature" in line:
-            temperature = float(line.split(":")[1].strip())
-        elif "Relative Humidity" in line:
-            humidity = float(line.split(":")[1].strip())
-        elif "CO2" in line:
-            CO2 = float(line.split(":")[1].strip()) 
+def log_data_thread(): #Function to log data in a seperate thread
+    global temperature, humidity, CO2, time_log, temp_log, hum_log, CO2_log
+    while True:
+        # Read data from Arduino
+        data = serialInst.readline().decode().strip()  # Read a line of data
+        if data:  # Check for data
+            current_time = datetime.now()
+            lines = data.split('\n')
+            for line in lines:
+                if "Temperature" in line:
+                    temperature = float(line.split(":")[1].split(",")[0])  # Extract the value between ':' and ','
+                elif "Relative Humidity" in line:
+                    humidity = float(line.split(":")[1].split(",")[0])  # Extract the value between ':' and ','
+                elif "CO2" in line:
+                    CO2 = float(line.split(":")[1].split(",")[0])  # Extract the value between ':' and ','
 
-    # Log received data to lists
-    time_log.append(elapsed_time)
-    temp_log.append(temperature)
-    hum_log.append(humidity)
-    CO2_log.append(CO2)
+            # Log received data to lists
+            time_log.append(current_time)  # Append current time as datetime object
+            temp_log.append(temperature)
+            hum_log.append(humidity)
+            CO2_log.append(CO2)
+            
+def update_plots(): # Update plots with new data
+    # Calculate the current time
+    current_time = datetime.now()
+    
+    # Plot for the last minute
+    last_minute_time = current_time - timedelta(minutes=1)
+    mask_minute = [t >= last_minute_time for t in time_log]
+    time_minute = [t for t, mask in zip(time_log, mask_minute) if mask]
+    temp_minute = [temp for temp, mask in zip(temp_log, mask_minute) if mask]
+    hum_minute = [hum for hum, mask in zip(hum_log, mask_minute) if mask]
+    CO2_minute = [CO2 for CO2, mask in zip(CO2_log, mask_minute) if mask]
+    save_plot(time_minute, temp_minute, hum_minute, CO2_minute, 'static/images/minute.png')
+    
+    # Plot for the last hour
+    last_hour_time = current_time - timedelta(hours=1)
+    mask_hourly = [t >= last_hour_time for t in time_log]
+    time_hourly = [t for t, mask in zip(time_log, mask_hourly) if mask]
+    temp_hourly = [temp for temp, mask in zip(temp_log, mask_hourly) if mask]
+    hum_hourly = [hum for hum, mask in zip(hum_log, mask_hourly) if mask]
+    CO2_hourly = [CO2 for CO2, mask in zip(CO2_log, mask_hourly) if mask]
+    save_plot(time_hourly, temp_hourly, hum_hourly, CO2_hourly, 'static/images/hourly.png')
+    
+    # Plot for the last 24 hours
+    last_24_hours_time = current_time - timedelta(days=1)
+    mask_daily = [t >= last_24_hours_time for t in time_log]
+    time_daily = [t for t, mask in zip(time_log, mask_daily) if mask]
+    temp_daily = [temp for temp, mask in zip(temp_log, mask_daily) if mask]
+    hum_daily = [hum for hum, mask in zip(hum_log, mask_daily) if mask]
+    CO2_daily = [CO2 for CO2, mask in zip(CO2_log, mask_daily) if mask]
+    save_plot(time_daily, temp_daily, hum_daily, CO2_daily, 'static/images/daily.png')
 
-def check_triggers():
+    time.sleep(2)  # Adjust the sleep time as needed
+
+def check_triggers(): # Compare data to thresholds
     global temperature, humidity, CO2, CO2_beyond, hum_below, hum_beyond, temp_below, color_CO2, color_hum_low, color_hum_high, color_temp
     # Threshold triggers
     # CO2 trigger
@@ -139,17 +191,46 @@ def check_triggers():
         temp_below = False 
         color_temp = 'gray' 
 
-# Main loop
+def actuator_activator(): # Controller for open and closing window
+    global WindowIsOpen,CO2_beyond
+    # Open or close window?
+    if CO2_beyond and not WindowIsOpen: # OPEN WINDOW! 
+        open_window()
+    elif not CO2_beyond and WindowIsOpen: # CLOSE WINDOW
+        close_window()
+
+def open_window():
+    global WindowIsOpen
+    print("UPDATE: Opening window!")
+    # CODE HERE
+    message = b'open\n'
+    serialInst.write(message)
+    time.sleep(5)  # Allow time for Window to close
+    WindowIsOpen = True
+
+def close_window():
+    global WindowIsOpen
+    print("UPDATE: Closing window!")
+    # CODE HERE
+    message = b'close\n'
+    serialInst.write(message)
+    time.sleep(5)  # Allow time for Window to close
+    WindowIsOpen = False
+
+# Start a thread to run the update_plots_thread function
+log_thread = threading.Thread(target=log_data_thread)
+log_thread.start()
+
 try:
     while True:
-        # Read data from Arduino
-        data = serialInst.readline().decode().strip()  # Read a line of data
-        if data:  # Check for data
-            log_data(data)  # Log new data
+        update_plots()
 
-            update_plots()  # Update the plots
+        check_triggers()
 
-            check_triggers()    # Checking data against thresholds
-            
-except KeyboardInterrupt: # Close serial connection on Ctrl+C
-    serialInst.close()
+        actuator_activator()
+
+        time.sleep(1)
+except KeyboardInterrupt: # Close program on Ctrl+C
+    print("Ctrl+C detected. Exiting...")
+    raise SystemExit # Exit the program
+
