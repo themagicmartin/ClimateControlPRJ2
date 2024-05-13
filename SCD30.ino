@@ -89,9 +89,9 @@ void standby()
 void run()
 {
  digitalWrite(stepPin, HIGH);
- delayMicroseconds(200);
+ delayMicroseconds(100);
  digitalWrite(stepPin, LOW);
- delayMicroseconds(200);
+ delayMicroseconds(100);
 }
 void open()
 {
