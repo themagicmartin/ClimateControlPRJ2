@@ -59,13 +59,13 @@ void loop() {
   }
     //Read the string sent from terminal, do what it tells.
   if(Serial.available() > 0){
-    String data = Serial.readString();
+    char data = Serial.readString();
 
-    if(data.equals("open"))
+    if(data == 'j')
     {
     open();
     }
-    else if(data.equals("close"))
+    else if(data == 'n')
     {
     close();
     }
@@ -94,9 +94,8 @@ void run()
 void open()
 {
   //Towards metal end
-  int i = 0;
   digitalWrite(directionPin, HIGH);
-  for(uint16_t i; i<64000; i++)
+  for(uint16_t i=0; i<64000; i++)
   {
     run();
   }
@@ -106,9 +105,8 @@ void open()
 void close()
 {
   //Towards stepper motor
-  int i = 0;
   digitalWrite(directionPin, LOW);
-    for(uint16_t i; i<64000; i++){
+    for(uint16_t i=0; i<64000; i++){
       run();
   }
   standby();
