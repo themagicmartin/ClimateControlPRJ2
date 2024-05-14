@@ -95,7 +95,6 @@ void open()
 {
   //Towards metal end
   int i = 0;
-  int u = 0;
   digitalWrite(directionPin, HIGH);
   for(uint16_t i; i<64000; i++)
   {
