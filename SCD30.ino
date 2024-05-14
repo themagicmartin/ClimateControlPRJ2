@@ -59,7 +59,7 @@ void loop() {
   }
     //Read the string sent from terminal, do what it tells.
   if(Serial.available() > 0){
-    char data = Serial.readString();
+    char data = Serial.read();
 
     if(data == 'j')
     {
