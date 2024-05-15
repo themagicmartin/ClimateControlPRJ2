@@ -56,16 +56,21 @@ def save_plot(time_log, temp_log, hum_log, CO2_log, output_path): # Converts plo
     
     # Temperature plot
     plt.subplot(3, 1, 1)
-    plt.plot(time_log, temp_log, color='red')
+    plt.plot([t.strftime('%H:%M:%S') for t in time_log], temp_log, color='red')  # Format time to display hour, minute, and second
     plt.axhline(y=temperature_lower_threshold, color=color_temp, linestyle='--')
     plt.xlabel('Time')
     plt.ylabel('Temperature (°C)')
     plt.grid(True)
     plt.title('Temperature Plot')
+    plt.xticks(rotation=0)  # Rotate x-axis labels if needed
+    
+    # Dynamically adjust the number of ticks on the x-axis for temperature plot
+    num_ticks_temp = min(len(time_log), 10)  # Maximum of 10 ticks
+    plt.gca().xaxis.set_major_locator(plt.MaxNLocator(num_ticks_temp))
     
     # Humidity plot
     plt.subplot(3, 1, 2)
-    plt.plot(time_log, hum_log, color='blue')
+    plt.plot([t.strftime('%H:%M:%S') for t in time_log], hum_log, color='blue')  # Format time to display hour, minute, and second
     plt.axhline(y=humidity_lower_threshold, color=color_hum_low, linestyle='--')
     plt.axhline(y=humidity_upper_threshold, color=color_hum_high, linestyle='--')
     plt.xlabel('Time')
@@ -73,15 +78,25 @@ def save_plot(time_log, temp_log, hum_log, CO2_log, output_path): # Converts plo
     plt.ylim(0, 100)
     plt.grid(True)
     plt.title('Humidity Plot')
+    plt.xticks(rotation=0)  # Rotate x-axis labels if needed
+    
+    # Dynamically adjust the number of ticks on the x-axis for humidity plot
+    num_ticks_hum = min(len(time_log), 10)  # Maximum of 10 ticks
+    plt.gca().xaxis.set_major_locator(plt.MaxNLocator(num_ticks_hum))
     
     # CO2 plot
     plt.subplot(3, 1, 3)
-    plt.plot(time_log, CO2_log, color='green')
+    plt.plot([t.strftime('%H:%M:%S') for t in time_log], CO2_log, color='green')  # Format time to display hour, minute, and second
     plt.axhline(y=CO2_upper_threshold, color=color_CO2, linestyle='--')
     plt.xlabel('Time')
     plt.ylabel('CO2 (ppm)')
     plt.grid(True)
     plt.title('CO2 Plot')
+    plt.xticks(rotation=0)  # Rotate x-axis labels if needed
+    
+    # Dynamically adjust the number of ticks on the x-axis for CO2 plot
+    num_ticks_CO2 = min(len(time_log), 10)  # Maximum of 10 ticks
+    plt.gca().xaxis.set_major_locator(plt.MaxNLocator(num_ticks_CO2))
     
     plt.subplots_adjust(hspace=0.5)  # Adjust the vertical spacing between subplots
     
@@ -92,6 +107,7 @@ def save_plot(time_log, temp_log, hum_log, CO2_log, output_path): # Converts plo
     
     # Close the current plot to release memory
     plt.close()
+
 
 def log_data_thread(): #Function to log data in a seperate thread
     global temperature, humidity, CO2, time_log, temp_log, hum_log, CO2_log
@@ -126,7 +142,8 @@ def update_plots(): # Update plots with new data
     temp_minute = [temp for temp, mask in zip(temp_log, mask_minute) if mask]
     hum_minute = [hum for hum, mask in zip(hum_log, mask_minute) if mask]
     CO2_minute = [CO2 for CO2, mask in zip(CO2_log, mask_minute) if mask]
-    save_plot(time_minute, temp_minute, hum_minute, CO2_minute, 'static/images/minute.png')
+    if CO2_minute:  # Check if CO2_minute list is not empty
+        save_plot(time_minute, temp_minute, hum_minute, CO2_minute, 'static/images/minute.png')
     
     # Plot for the last hour
     last_hour_time = current_time - timedelta(hours=1)
@@ -135,7 +152,8 @@ def update_plots(): # Update plots with new data
     temp_hourly = [temp for temp, mask in zip(temp_log, mask_hourly) if mask]
     hum_hourly = [hum for hum, mask in zip(hum_log, mask_hourly) if mask]
     CO2_hourly = [CO2 for CO2, mask in zip(CO2_log, mask_hourly) if mask]
-    save_plot(time_hourly, temp_hourly, hum_hourly, CO2_hourly, 'static/images/hourly.png')
+    if CO2_hourly:  # Check if CO2_hourly list is not empty
+        save_plot(time_hourly, temp_hourly, hum_hourly, CO2_hourly, 'static/images/hourly.png')
     
     # Plot for the last 24 hours
     last_24_hours_time = current_time - timedelta(days=1)
@@ -144,7 +162,8 @@ def update_plots(): # Update plots with new data
     temp_daily = [temp for temp, mask in zip(temp_log, mask_daily) if mask]
     hum_daily = [hum for hum, mask in zip(hum_log, mask_daily) if mask]
     CO2_daily = [CO2 for CO2, mask in zip(CO2_log, mask_daily) if mask]
-    save_plot(time_daily, temp_daily, hum_daily, CO2_daily, 'static/images/daily.png')
+    if CO2_daily:  # Check if CO2_daily list is not empty
+        save_plot(time_daily, temp_daily, hum_daily, CO2_daily, 'static/images/daily.png')
 
     time.sleep(2)  # Adjust the sleep time as needed
 
@@ -203,8 +222,9 @@ def open_window():
     global WindowIsOpen
     print("UPDATE: Opening window!")
     # CODE HERE
-    message = b'open\n'
-    serialInst.write(message)
+    message = "open\n"
+    serialInst.write(message.encode())
+
     time.sleep(5)  # Allow time for Window to close
     WindowIsOpen = True
 
@@ -212,8 +232,9 @@ def close_window():
     global WindowIsOpen
     print("UPDATE: Closing window!")
     # CODE HERE
-    message = b'close\n'
-    serialInst.write(message)
+    message = "close\n"
+    serialInst.write(message.encode())
+
     time.sleep(5)  # Allow time for Window to close
     WindowIsOpen = False
 
@@ -223,13 +244,12 @@ log_thread.start()
 
 try:
     while True:
-        update_plots()
+        update_plots() # Has two second sleep
 
         check_triggers()
 
         actuator_activator()
 
-        time.sleep(1)
 except KeyboardInterrupt: # Close program on Ctrl+C
     print("Ctrl+C detected. Exiting...")
     raise SystemExit # Exit the program
