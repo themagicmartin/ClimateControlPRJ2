@@ -20,7 +20,6 @@ void loop()
     if (receivedData.startsWith("sensor1data:")) 
     {
         parseSensorData(receivedData);
-        checkLimit();
     }
   }
 
