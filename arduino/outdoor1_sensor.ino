@@ -63,28 +63,28 @@ void loop() {
     // Sensor 1
     Serial.print("Temperature: ");
     Serial.print(scd30.temperature);
-    Serial.print(" °C,");
+    Serial.print(",\n");
     
     Serial.print("Relative Humidity: ");
     Serial.print(scd30.relative_humidity);
-    Serial.print(" %,");
+    Serial.print(",\n");
     
     Serial.print("CO2: ");
     Serial.print(scd30.CO2);
-    Serial.print(" ppm,\n");
+    Serial.print(",\n");
     
     // Sensor 2
     Serial.print("Temperature1: ");
     Serial.print(temperature1);
-    Serial.print(" °C, ");
+    Serial.print(",\n");
 
     Serial.print("Relative Humidity1: ");
     Serial.print(humidity1);
-    Serial.print(" %, ");
+    Serial.print(",\n");
     
     Serial.print("CO21: ");
     Serial.print(CO21);
-    Serial.println(" ppm ");
+    Serial.println(",\n");
 
   } else {
     //Serial.println("No data");
