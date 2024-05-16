@@ -124,27 +124,46 @@ p {
             </center>
         </div>
 
-        <!-- JavaScript code to update the image -->
-        <script>
-            // Function to update the image
-            function updateImage() {
-                // Get the image element
-                var img = document.getElementById("graphImage");
+        <!-- JavaScript code to update the image and averages text -->
+            <script>
+                // Function to update the image and averages text
+                function updateContent() {
+                    // Get the image element
+                    var img = document.getElementById("graphImage");
 
-                // Generate a new timestamp to ensure the image is not cached by the browser
-                var timestamp = new Date().getTime();
+                    // Generate a new timestamp to ensure the image is not cached by the browser
+                    var timestamp = new Date().getTime();
 
-                // Set the source of the image with a new timestamp to force a reload
-                img.src = "{{ image_path }}?timestamp=" + timestamp;
-                console.log("Event logged: Image updated");
-            }
+                    // Set the source of the image with a new timestamp to force a reload
+                    img.src = "{{ image_path }}?timestamp=" + timestamp;
+                    console.log("Event logged: Image updated");
 
-            // Call the updateImage function every 5 seconds
-            setInterval(updateImage, 5000);
-        </script>        
+                    // Fetch the updated averages text
+                    fetch('/get_averages')
+                        .then(response => response.json())
+                        .then(data => {
+                            averagesDiv.textContent = data.averages_text;
+                            console.log("Event logged: Averages text updated");
+                        })
+                        .catch(error => console.error('Error fetching averages text:', error));
+                }
+
+                // Call the updateContent function when the page loads
+                
+                updateContent();
+
+                // Call the updateContent function every 3 seconds
+                setInterval(updateContent, 5000);
+                
+            </script>
+
 
         <!-- Division 3: Notifications -->
         <div class="division">
+            <body>
+                <h2>Outside values</h2>
+                <pre>{{ averages_text }}</pre>
+            </body>
         </div>
 
         <!-- Division 4: Buttons division -->
