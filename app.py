@@ -1,16 +1,14 @@
-import threading                                            # For multithread operation
-import serial                                               # Serial communication to Arduino
-import time                                                 # Sleep timers
-from datetime import datetime, timedelta                    # Timestamps for plotting
-import matplotlib.pyplot as plt                             # For data visualisation
-import os                                                   # For saving plots as .png
-from flask import Flask, render_template, request, redirect # For webserver hosting
+import threading                                            
+import serial                                               
+import time                                                 
+from datetime import datetime, timedelta                    
+import matplotlib.pyplot as plt                             
+from flask import Flask, render_template, request, redirect, jsonify
 
-app = Flask(__name__)
-
-# Initialize serial communication
 serialInst = serial.Serial('/dev/tty.usbmodem1101', 115200)  # Port and baudrate. On mac terminal: ls /dev/tty.*
 time.sleep(2)  # Allow time for Arduino to initialize
+
+app = Flask(__name__)
 
 # Initialize threshold values
 temperature_lower_threshold = 10.0
@@ -29,7 +27,9 @@ initial_CO2_upper_threshold = CO2_upper_threshold
 def index():
     # Default image path
     image_path = 'static/images/minute.png'
-    return render_template('base.html', image_path=image_path, temperature_lower_threshold=temperature_lower_threshold,humidity_lower_threshold=humidity_lower_threshold,humidity_upper_threshold=humidity_upper_threshold,CO2_upper_threshold=CO2_upper_threshold)
+    with open('/Users/Martin/Desktop/Webserver/static/averages.txt', 'r') as file:
+        averages_text = file.read()
+    return render_template('base.html', image_path=image_path, averages_text=averages_text, temperature_lower_threshold=temperature_lower_threshold,humidity_lower_threshold=humidity_lower_threshold,humidity_upper_threshold=humidity_upper_threshold,CO2_upper_threshold=CO2_upper_threshold)
 
 # Graph handler !! Notice path of images, and naming of these
 @app.route('/change-image', methods=['POST'])
@@ -43,7 +43,9 @@ def change_image():
         image_path = 'static/images/daily.png'
     else:
         image_path = 'static/images/minute.png'  # Default image path
-    return render_template('base.html', image_path=image_path, temperature_lower_threshold=temperature_lower_threshold,humidity_lower_threshold=humidity_lower_threshold,humidity_upper_threshold=humidity_upper_threshold,CO2_upper_threshold=CO2_upper_threshold)
+    with open('/Users/Martin/Desktop/Webserver/static/averages.txt', 'r') as file:
+        averages_text = file.read()
+    return render_template('base.html', image_path=image_path, averages_text=averages_text, temperature_lower_threshold=temperature_lower_threshold,humidity_lower_threshold=humidity_lower_threshold,humidity_upper_threshold=humidity_upper_threshold,CO2_upper_threshold=CO2_upper_threshold)
 
 # Save/reset threshold handler
 @app.route('/save-reset-threshold', methods=['POST'])
@@ -76,9 +78,12 @@ def save_reset_threshold():
     # Redirect to the homepage after processing
     return redirect('/')
 
-
+# Endpoint to get the averages text
+@app.route('/get_averages')
+def get_averages():
+    with open('/Users/Martin/Desktop/Webserver/static/averages.txt', 'r') as file:
+        averages_text = file.read()
+    return jsonify({'averages_text': averages_text})
 
 # Run webserver on specified port (can be changed to any port not in use)
 app.run(debug=True, port=5002)
-
-
