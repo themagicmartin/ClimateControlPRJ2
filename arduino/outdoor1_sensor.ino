@@ -72,6 +72,8 @@ void loop() {
     Serial.print("CO2: ");
     Serial.print(scd30.CO2);
     Serial.print(",\n");
+
+    delay(10); //Small delay for transmitting correct
     
     // Sensor 2
     Serial.print("Temperature1: ");
