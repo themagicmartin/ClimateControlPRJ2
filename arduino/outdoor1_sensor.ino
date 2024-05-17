@@ -6,6 +6,7 @@ SoftwareSerial mySerial(10, 11); // RX, TX for SoftwareSerial
 Adafruit_SCD30  scd30;
 
 // Pins on arduino for motor
+#define buzzerPin 5
 const int directionPin = 2;
 const int stepPin = 3;
 
@@ -39,6 +40,7 @@ void setup(void) {
   //Motor pin setup
   pinMode(directionPin, OUTPUT);
   pinMode(stepPin, OUTPUT);
+  pinMode(buzzerPin, OUTPUT);
   digitalWrite(directionPin, LOW);
   digitalWrite(stepPin, LOW);
 }
@@ -97,11 +99,17 @@ void loop() {
 
     if(data == 'j')
     {
-    open();
+      beep();
+      delay(1000);
+      beep();
+      open();
     }
     else if(data == 'n')
     {
-    close();
+      beep();
+      delay(1000);
+      beep();
+      close();
     }
     else{
     standby();
@@ -145,7 +153,15 @@ void close()
   }
   standby();
 }
-
+void beep()
+{
+  int u;
+  for(u=0; u<80; u++)
+  digitalWrite(buzzerPin, HIGH);
+  delay(500);
+  digitalWrite(buzzerPin, LOW);
+  delay(500);
+}
 void parseSensorData(String data) 
 {
   data.remove(0, 12); // Remove "sensor1data:" from the beginning
