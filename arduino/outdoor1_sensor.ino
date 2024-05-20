@@ -6,7 +6,7 @@ SoftwareSerial mySerial(10, 11); // RX, TX for SoftwareSerial
 Adafruit_SCD30  scd30;
 
 // Pins on arduino for motor
-#define buzzerPin 5
+const int  buzzerPin = 5;
 const int directionPin = 2;
 const int stepPin = 3;
 
