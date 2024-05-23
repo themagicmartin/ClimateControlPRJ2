@@ -1,9 +1,12 @@
 #include <AccelStepper.h>
+#include <Wire.h>
+#define F_CPU 16000000
+#include <util/delay.h>
+#include <avr/io.h>
+#define buzzerPin 5
 const int directionPin = 2;
 const int stepPin = 3; 
-const int MSIPin = 4;
-const int MSI2Pin = 5;
-int test = 0;
+char test = 'x';
 
 void setup() 
 {
@@ -11,25 +14,46 @@ void setup()
   while (!Serial) delay(10);
   pinMode(directionPin, OUTPUT);
   pinMode(stepPin, OUTPUT);
+  pinMode(buzzerPin, OUTPUT);
   digitalWrite(directionPin, LOW);
   digitalWrite(stepPin, LOW);
 }
 
 void loop() 
 {
-  if(test == 1)
-  {
-    open();
-  }
-  else if(test == 0)
-  {
-    close();
-  }
-  else{
-  standby();
+  if(Serial.available() > 0){
+    char data = Serial.read();
+    Serial.println("kom ind i motor loop");
+    Serial.println(data);
+    if(data == 'j')
+    {
+      beep();
+      delay(1000);
+      beep();
+      open();
+    }
+    else if(data == 'n')
+    {
+      beep();
+      delay(1000);
+      beep();
+      close();
+    }
+    else{
+      standby();
+   }
   }
 }
 
+void beep()
+{
+  int u;
+  for(u=0; u<80; u++)
+  digitalWrite(buzzerPin, HIGH);
+  delay(500);
+  digitalWrite(buzzerPin, LOW);
+  delay(500);
+}
 void standby()
 {
  digitalWrite(stepPin, LOW);
@@ -48,10 +72,8 @@ void run()
 void open()
 {
   //Towards metal end
-  int i = 0;
-  int u = 0;
   digitalWrite(directionPin, HIGH);
-  for(uint16_t i; i<64000; i++)
+  for(uint16_t i=0; i<64000; i++)
   {
     run();
   }
@@ -61,9 +83,8 @@ void open()
 void close()
 {
   //Towards stepper motor
-  int i = 0;
   digitalWrite(directionPin, LOW);
-    for(uint16_t i; i<64000; i++){
+    for(uint16_t i=0; i<64000; i++){
       run();
   }
   standby();
