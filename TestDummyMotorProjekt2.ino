@@ -1,8 +1,5 @@
 #include <AccelStepper.h>
 #include <Wire.h>
-#define F_CPU 16000000
-#include <util/delay.h>
-#include <avr/io.h>
 #define buzzerPin 5
 const int directionPin = 2;
 const int stepPin = 3; 
